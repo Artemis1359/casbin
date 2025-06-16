@@ -1,0 +1,47 @@
+from simpleeval import SimpleEval
+import logging
+from typing import Dict, Any
+from fastapi import Request
+from casbin_async_sqlalchemy_adapter.adapter import Adapter
+from app.core.config import casbin_model_conf, settings
+import casbin
+
+logger = logging.getLogger(__name__)
+
+async def create_enforcer():
+    adapter = Adapter(settings.get_db_url())
+    await adapter.create_table()  # создаём таблицы, если их нет
+
+    model = casbin.Model()
+    model.load_model(casbin_model_conf)  # путь к модели или строка с моделью
+
+    enforcer = casbin.Enforcer(model, adapter, enable_log=True)
+    await enforcer.load_policy()
+    return enforcer
+
+async def get_enforcer(request: Request):
+    return request.app.state.enforcer
+
+def eval_rule(sub: Dict[str, Any], obj: str, act: str, condition: str) -> bool:
+    if not condition or not condition.strip():
+        return False
+    s = SimpleEval(
+        names={
+            "sub": sub,
+            "obj": obj,
+            "act": act,
+        }
+    )
+    try:
+        return s.eval(condition)
+    except Exception as e:
+        logger.error(f"Eval error: {e}")
+        return False
+
+
+
+async def add_policy(enforcer, sub, obj, act, condition):
+    return await enforcer.add_policy(sub, obj, act, condition)
+
+async def remove_policy(enforcer, sub, obj, act, condition):
+    return await enforcer.remove_policy(sub, obj, act, condition)

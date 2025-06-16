@@ -1,0 +1,11 @@
+apiVersion: security.istio.io/v1beta1
+kind: RequestAuthentication
+metadata:
+  name: fastapi-jwt-auth
+spec:
+  selector:
+    matchLabels:
+      app: fastapi-app
+  jwtRules:
+    - issuer: "prototype"
+      jwksUri: "http://fastapi-app.default.svc.cluster.local/auth/jwks.json"

@@ -1,0 +1,12 @@
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: fastapi-jwt-policy
+spec:
+  selector:
+    matchLabels:
+      app: fastapi-app
+  rules:
+    - from:
+        - source:
+            requestPrincipals: ["*"]
