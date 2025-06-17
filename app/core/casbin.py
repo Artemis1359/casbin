@@ -8,19 +8,31 @@ import casbin
 
 logger = logging.getLogger(__name__)
 
+
+class EnforcerSingleton:
+    _instance = None
+
+    @classmethod
+    async def get_instance(cls):
+        if cls._instance is None:
+            cls._instance = await create_enforcer()
+        return cls._instance
+
+
 async def create_enforcer():
     adapter = Adapter(settings.get_db_url())
     await adapter.create_table()  # создаём таблицы, если их нет
 
     model = casbin.Model()
-    model.load_model(casbin_model_conf)  # путь к модели или строка с моделью
+    model.load_model(casbin_model_conf)
 
-    enforcer = casbin.Enforcer(model, adapter, enable_log=True)
+    enforcer = casbin.AsyncEnforcer(model, adapter, enable_log=True)
+    enforcer.add_function("eval_rule", eval_rule)
     await enforcer.load_policy()
     return enforcer
 
 async def get_enforcer(request: Request):
-    return request.app.state.enforcer
+    return await EnforcerSingleton.get_instance()
 
 def eval_rule(sub: Dict[str, Any], obj: str, act: str, condition: str) -> bool:
     if not condition or not condition.strip():

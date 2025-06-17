@@ -56,6 +56,8 @@ class AuthXSettings(BaseSettings):
         data = self.model_dump()
         data['JWT_PRIVATE_KEY'] = self.JWT_PRIVATE_KEY
         data['JWT_PUBLIC_KEY'] = self.JWT_PUBLIC_KEY
+        data.pop("JWT_PRIVATE_KEY_PATH", None)
+        data.pop("JWT_PUBLIC_KEY_PATH", None)
         return data
 
     model_config = env_model_conf
@@ -64,6 +66,6 @@ settings = Settings()
 auth_settings = AuthXSettings()
 
 # print(settings.get_db_url())
-print(auth_settings.as_config_dict())
+# print(auth_settings.as_config_dict())
 # print(PROJECT_ROOT)
 

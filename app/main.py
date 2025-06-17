@@ -1,18 +1,13 @@
+import asyncio
 from contextlib import asynccontextmanager
 
 
 from fastapi import FastAPI
 from app.api.routes.policies import router as policy_router
 from app.api.routes.auth import router as auth_router
-from app.core.casbin import create_enforcer
+from app.core.casbin import create_enforcer, EnforcerSingleton
+from app.core.middleware import CasbinMiddleware
 
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-
-    enforcer = await create_enforcer()
-    app.state.enforcer = enforcer
-    yield
 
 app = FastAPI(
     title="Prototype",
@@ -20,9 +15,9 @@ app = FastAPI(
     root_path="/v1",
     docs_url="/docs",
     openapi_url="/openapi.json",
-    redoc_url="/redoc",
-    lifespan=lifespan
+    redoc_url="/redoc"
 )
 app.include_router(policy_router)
 app.include_router(auth_router, prefix="/auth")
+app.add_middleware(CasbinMiddleware)
 
