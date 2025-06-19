@@ -203,3 +203,4 @@ __marimo__/
 infra/base/postgres-secret.yaml
 app/api/private_key.pem
 app/api/public_key.pem
+docker-compose.yaml

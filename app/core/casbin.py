@@ -1,12 +1,11 @@
 from simpleeval import SimpleEval
-import logging
 from typing import Dict, Any
 from fastapi import Request
 from casbin_async_sqlalchemy_adapter.adapter import Adapter
 from app.core.config import casbin_model_conf, settings
 import casbin
 
-logger = logging.getLogger(__name__)
+from app.core.logger_config import logger
 
 
 class EnforcerSingleton:
@@ -26,7 +25,7 @@ async def create_enforcer():
     model = casbin.Model()
     model.load_model(casbin_model_conf)
 
-    enforcer = casbin.AsyncEnforcer(model, adapter, enable_log=True)
+    enforcer = casbin.AsyncEnforcer(model, adapter, enable_log=False)
     enforcer.add_function("eval_rule", eval_rule)
     await enforcer.load_policy()
     return enforcer
@@ -44,6 +43,7 @@ def eval_rule(sub: Dict[str, Any], obj: str, act: str, condition: str) -> bool:
             "act": act,
         }
     )
+    logger.info(f'{condition} ----- {s.eval(condition)}')
     try:
         return s.eval(condition)
     except Exception as e:

@@ -1,12 +1,11 @@
-import asyncio
-from contextlib import asynccontextmanager
 
 
 from fastapi import FastAPI
 from app.api.routes.policies import router as policy_router
 from app.api.routes.auth import router as auth_router
-from app.core.casbin import create_enforcer, EnforcerSingleton
 from app.core.middleware import CasbinMiddleware
+
+
 
 
 app = FastAPI(
